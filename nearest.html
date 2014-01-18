@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Emergency Markup</title>
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/d3/3.3.13/d3.js" charset="utf-8"></script>
+</head>
+<body>
+	<img src="http://muyueh.com/seeall/image/metro.jpeg" style="display:none;"> 
+<script type="text/javascript">
+
+
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-36523378-1']);
+_gaq.push(['_trackPageview']);
+
+(function() {
+	var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+	ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+	var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})();
+
+
+
+var header = ["醫院", "距離", "床", "/總", "","更新"];
+
+var table = d3.select("body")
+	.append("div")
+	.append("table")
+	.style({
+		"font-family": "monospace"
+	})
+	.append("tr")
+	.selectAll("td")
+	.data(header)
+	.enter()
+	.append("td")
+	.text(function(d){
+		return d;
+	})
+	.attr({
+		"width": function(d){
+			if(d === "床" ||
+				d === "/總"
+				){
+				return 30;
+			}
+			return 60;
+		}
+	})
+	.style({
+		"text-align": function(d){
+			if(d === "床" ||
+				d === "距離" ||
+				d === "醫院" ||
+				d === "更新"
+				){
+				return "right";
+			}
+			else{
+				return "left"
+			}
+		}
+	})
+
+function creatingRow(){
+	function Draw(selection){
+		selection.each(function(d,i){
+
+			d3.select(this)
+				.insert("td")
+				.text(function(d){
+					return d.name;
+				})
+				.style({
+					"text-align": "right"
+				});
+
+			d3.select(this)
+				.insert("td")
+				.text(function(d){
+					return d.km + "km" ;
+				})
+				.style({
+					"text-align": "right"
+				});
+
+
+
+			d3.select(this)
+				.insert("td")
+				.text(function(d){
+					return d.totalBeds - d.usedBeds;
+				})
+				.style({
+					"text-align": "right"
+				});
+
+			d3.select(this)
+				.insert("td")
+				.text(function(d){
+					return "/" + d.totalBeds;
+				})
+				.style({
+					"text-align": "left"
+				});
+
+
+			var bedSize = 3;
+
+
+			var bedSVG = d3.select(this)
+				.insert("td")
+				.append("svg")
+				.attr({
+					"width":150, 
+					"height": 20
+				});
+
+			bedSVG
+				.selectAll("rect")
+				.data(function(d){
+					var beds = [];
+					for(var j = 0; j < d.totalBeds - d.usedBeds; ++j){
+						beds.push("free");
+					}					
+					for(var i = 0; i < d.usedBeds; ++i){
+						beds.push("used");
+					}
+					// console.log(beds);
+					return beds;
+				})
+				.enter()
+				.append("rect")
+				.attr({
+					"x": function(d, i){ 
+						return 10 
+							+ Math.floor(i / 3) * (bedSize + 3)
+							+ Math.floor(i / 9) * bedSize;
+					},
+					"y": function(d, i){ 
+						return Math.floor(i % 3) * (bedSize + 3) + 3;
+					},
+					"width": bedSize,
+					"height": bedSize
+				})
+				.style({
+					"fill": function(d){
+						if(d === "free"){
+							return "none";
+						}
+						else{
+							return "#17becf";
+						}
+					},
+					"stroke": "#17becf",
+					"stroke-width": 1,
+					"opacity": function(d){
+						if(d === "used"){
+							return 0.3;
+						}
+					}
+				});
+
+
+			d3.select(this)
+				.insert("td")
+				.text(function(d){
+					var time = ((+d.updtime) - (new Date())) / 60000;
+
+					return Math.floor(time) + "分鐘前" ;
+					// + (time).toFixed(2).split(".")[1] + "s";
+				})
+				.style({
+					"text-align": "right", 
+					"opacity": 0.4
+				});
+
+
+		});
+	}
+
+	return Draw;
+}
+
+
+
+function creatingTable(_d){
+	d3.select("table")
+		.append("tr")
+		.datum(_d)
+		.call(aHospital);
+}
+
+function addMinutes(date, minutes) {
+	return new Date(date.getTime() + minutes * 60000);
+}
+
+var aHospital = creatingRow();
+
+var datas = [
+	{
+		"name": "仁愛醫院",
+		"usedBeds": 8,
+		"updtime": addMinutes(new Date(), Math.random() * 10),
+		"totalBeds": 10,
+		"km": Math.floor(Math.random() * 30)
+	},
+	{
+		"name": "國泰醫院",
+		"usedBeds": 10,
+		"updtime": addMinutes(new Date(), Math.random() * 10),
+		"totalBeds": 30,
+		"km": Math.floor(Math.random() * 30)
+	},
+	{
+		"name": "長榮醫院",
+		"usedBeds": 5,
+		"updtime": addMinutes(new Date(), Math.random() * 10),
+		"totalBeds": 50,
+		"km": Math.floor(Math.random() * 30)
+	},
+	{
+		"name": "中和醫院",
+		"usedBeds": 1,
+		"updtime": addMinutes(new Date(), Math.random() * 10),
+		"totalBeds": 11,
+		"km": Math.floor(Math.random() * 30)
+	},
+	{
+		"name": "慈濟醫院",
+		"usedBeds": 2,
+		"updtime": addMinutes(new Date(), Math.random() * 10),
+		"totalBeds": 42,
+		"km": Math.floor(Math.random() * 30)
+	}
+];
+
+// var adressTable = {
+// 	"仁愛醫院": {"lng": 121, "lat": 20},
+// 	"國泰醫院": {"lng": 121, "lat": 20},
+// 	"長榮醫院": {"lng": 121, "lat": 20}
+// }
+
+
+datas.sort(function(a, b){
+	return a.km - b.km;
+})
+
+datas.forEach(function(d,i){
+	creatingTable(d);
+});
+
+
+
+// d3.json("")
+
+
+</script>
+</body>
+</html>
